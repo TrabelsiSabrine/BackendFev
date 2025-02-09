@@ -1,58 +1,50 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-const { connectToMongoDb } = require("./config/db");//importation
+var createError = require("http-errors");
+var express = require("express");
+var path = require("path");
+var cookieParser = require("cookie-parser");
+var logger = require("morgan");
 
-require("dotenv").config(); //configuration dotenv
+const { connectToMongoDb } = require("./config/db");
 
-const http = require('http');
-var indexRouter = require('./routes/indexRouter');
-var usersRouter = require('./routes/usersRouter');//nasna3 serveur
-var osRouter = require('./routes/osRouter');
+require("dotenv").config();
 
 
+const http = require("http"); //1
 
-
+var indexRouter = require("./routes/indexRouter");
+var usersRouter = require("./routes/usersRouter");
+var osRouter = require("./routes/osRouter");
 
 var app = express();
 
-// Configuration du moteur de template
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
-
-app.use(logger('dev'));
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
-// Définition des routes
-app.use('/', indexRouter);
+app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/os", osRouter);
 
-
-// Gestion des erreurs 404
-app.use((req, res, next) => {
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
-// Gestion des erreurs générales
-app.use((err, req, res, next) => {
+// error handler
+app.use(function (err, req, res, next) {
+  // set locals, only providing error in development
   res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  res.locals.error = req.app.get("env") === "development" ? err : {};
 
+  // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.render("error");
 });
 
-// Création du serveur
-const server = http.createServer(app);
-const port = process.env.PORT || 5001; // Utilise 5001 par défaut si PORT n'est pas défini
-server.listen(port, async () => { 
-  await connectToMongoDb(); 
-  console.log(`✅ Serveur démarré sur le port ${port}!`);
+const server = http.createServer(app); //2
+server.listen(process.env.port, () => {
+  connectToMongoDb()
+  console.log("app is running on port 5001");
 });
-
