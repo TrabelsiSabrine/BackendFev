@@ -107,18 +107,24 @@ module.exports.deleteUserById= async (req,res) => {
 }
 
 module.exports.updateuserById = async (req, res) => {
-try {
-    const {id} = req.params
-    const {email , username} = req.body;
+    try {
+        const { id } = req.params;
+        const { email, username, age } = req.body;
 
-    await userModel.findByIdAndUpdate(id,{$set : {email , username }})
-    const updated = await userModel.findById(id)
+        const updateData = {
+            email,
+            username,
+            ...(age && { age }) // Ajoute le champ age seulement si un âge est fourni
+        };
 
-    res.status(200).json({updated})
-} catch (error) {
-    res.status(500).json({message: error.message});
-}
-}
+        await userModel.findByIdAndUpdate(id, { $set: updateData });
+        const updated = await userModel.findById(id);
+
+        res.status(200).json({ updated });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 module.exports.searchUserByUsername = async (req, res) => {
     try {

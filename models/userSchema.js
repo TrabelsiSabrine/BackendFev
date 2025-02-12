@@ -1,12 +1,13 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+
 const userSchema = new mongoose.Schema(
   {
     username: {
-        type: String,
-        required: true,
-        unique: true,
-      },
+      type: String,
+      required: true,
+      unique: true,
+    },
     email: {
       type: String,
       required: true,
@@ -20,38 +21,42 @@ const userSchema = new mongoose.Schema(
       minLength: 8,
       match: [
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-        (props) => `Le mot de passe "${props.value}" doit contenir au moins 8 caractères, une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial.`,
+        "Le mot de passe doit contenir au moins 8 caractères, une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial.",
       ],
     },
-    
     role: {
       type: String,
       enum: ["admin", "client", "infi"],
     },
-    user_image: { type: String, require: false, default: "client.png" },
-    //etat: Boolean
-    count: Number,
+    user_image: { type: String, default: "" },
+    age: { type: Number },
+    count: { type: Number, default: 0 }, 
   },
-  { timestamps: true }
+  { timestamps: true, versionKey: false } // Désactiver __v
 );
 
+// Hashage du mot de passe avant sauvegarde
 userSchema.pre("save", async function (next) {
   try {
-    const salt = await bcrypt.genSalt();
-    const user = this;
-    user.password = await bcrypt.hash(user.password, salt);
-    //user.etat = false ;
-    user.count = user.count + 1;
+    if (this.isModified("password")) {
+      const salt = await bcrypt.genSalt();
+      this.password = await bcrypt.hash(this.password, salt);
+    }
+    
+    // Vérification et incrémentation de count
+    this.count = (this.count ?? 0) + 1;
+
     next();
   } catch (error) {
     next(error);
   }
 });
 
-userSchema.post("save", async function (req, res, next) {
-  console.log("new user was created & saved successfully");
+// ✅ Log après la sauvegarde
+userSchema.post("save", async function (doc, next) {
+  console.log("✅ Nouvel utilisateur créé :", doc.username);
   next();
 });
 
-const user = mongoose.model("user", userSchema);
-module.exports = user;
+const User = mongoose.model("User", userSchema);
+module.exports = User;
