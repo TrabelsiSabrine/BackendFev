@@ -8,12 +8,12 @@ const { connectToMongoDb } = require("./config/db");
 
 require("dotenv").config();
 
-
-const http = require("http"); //1
+const http = require("http"); // Importation du module HTTP
 
 var indexRouter = require("./routes/indexRouter");
 var usersRouter = require("./routes/usersRouter");
 var osRouter = require("./routes/osRouter");
+var contratRouter = require("./routes/contratRouter");
 
 var app = express();
 
@@ -26,13 +26,14 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/os", osRouter);
+app.use('/contrats', contratRouter);
 
-// catch 404 and forward to error handler
+// Gestion des erreurs 404
 app.use(function (req, res, next) {
   next(createError(404));
 });
 
-// Error handler
+// Gestion des erreurs globales
 app.use(function (err, req, res, next) {
   res.status(err.status || 500).json({
     message: err.message,
@@ -40,9 +41,11 @@ app.use(function (err, req, res, next) {
   });
 });
 
+//Ajout de cette ligne pour créer le serveur HTTP
+const server = http.createServer(app);
 
-const server = http.createServer(app); //2
-server.listen(process.env.port, () => {
-  connectToMongoDb()
-  console.log("app is running on port 5001");
+const PORT = process.env.PORT || 5001; // Définit un port par défaut
+server.listen(PORT, () => {
+  connectToMongoDb();
+  console.log(`Serveur lancé sur http://localhost:${PORT}`);
 });

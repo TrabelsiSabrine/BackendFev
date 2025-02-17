@@ -30,7 +30,8 @@ const userSchema = new mongoose.Schema(
     },
     user_image: { type: String, default: "" },
     age: { type: Number },
-    count: { type: Number, default: 0 }, 
+    count: { type: Number, default: 0 },
+    contrats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contrat' }], // Ajout de la référence aux contrats
   },
   { timestamps: true, versionKey: false } // Désactiver __v
 );
