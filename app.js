@@ -14,6 +14,8 @@ var indexRouter = require("./routes/indexRouter");
 var usersRouter = require("./routes/usersRouter");
 var osRouter = require("./routes/osRouter");
 var contratRouter = require("./routes/contratRouter");
+var paiementRouter = require("./routes/paiementRouter");
+var reclamationRouter = require("./routes/reclamationRouter");
 
 var app = express();
 
@@ -27,6 +29,8 @@ app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/os", osRouter);
 app.use('/contrats', contratRouter);
+app.use("/paiements", paiementRouter);
+app.use("/reclamations", reclamationRouter);
 
 // Gestion des erreurs 404
 app.use(function (req, res, next) {
