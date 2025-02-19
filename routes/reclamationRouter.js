@@ -2,11 +2,11 @@ const express = require("express");
 const router = express.Router();
 const reclamationController = require("../controllers/reclamationController");
 
-// Routes pour les réclamations
-router.get("/", reclamationController.getAllReclamations);
-router.get("/:id", reclamationController.getReclamationById);
+// ➤ Routes pour gérer les réclamations
 router.post("/addReclamation", reclamationController.addReclamation);
-router.put("/:id", reclamationController.updateReclamation);
-router.delete("/:id", reclamationController.deleteReclamation);
+router.get("/getAllReclamations", reclamationController.getAllReclamations); 
+router.get("/getReclamationById/:id", reclamationController.getReclamationById);
+router.put("/updateReclamationById/:id", reclamationController.updateReclamationById); 
+router.delete("/deleteReclamationById/:id", reclamationController.deleteReclamationById); 
 
 module.exports = router;

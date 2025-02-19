@@ -1,5 +1,4 @@
 const userModel = require('../models/userSchema');
-const contratModel = require('../models/contratSchema');
 
 module.exports.addUserClient = async (req, res) => {
     try {

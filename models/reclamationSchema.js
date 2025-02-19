@@ -2,12 +2,33 @@ const mongoose = require("mongoose");
 
 const reclamationSchema = new mongoose.Schema(
   {
-    description: { type: String, required: true },
-    statut: { type: String, enum: ["En attente", "Traitée", "Rejetée"], default: "En attente" },
-    date: { type: Date, default: Date.now }
+    description: {
+      type: String,
+      required: [true, "La description est obligatoire"],
+      trim: true,
+    },
+    status: {
+      type: String,
+      enum: ["En attente", "En cours", "Résolue", "Rejetée"],
+      default: "En attente",
+    },
+    date: {
+      type: Date,
+      default: Date.now,
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "L'utilisateur associé est obligatoire"],
+    },
   },
-  { timestamps: true }
+  { timestamps: true, versionKey: false }
 );
+
+reclamationSchema.post("save", async function (doc, next) {
+  console.log(`✅ Nouvelle réclamation créée par l'utilisateur ${doc.user}`);
+  next();
+});
 
 const Reclamation = mongoose.model("Reclamation", reclamationSchema);
 module.exports = Reclamation;
