@@ -44,6 +44,8 @@ const produitSchema = new mongoose.Schema(
       enum: ["actif", "expiré", "annulé"],
       default: "actif",
     },
+    contrats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ClientContrat' }] // Liens avec les contrats associés
+
   },
   { timestamps: true, versionKey: false }
 );

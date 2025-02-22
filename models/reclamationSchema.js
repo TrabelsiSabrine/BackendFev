@@ -26,7 +26,9 @@ const reclamationSchema = new mongoose.Schema(
 );
 
 reclamationSchema.post("save", async function (doc, next) {
-  console.log(`✅ Nouvelle réclamation créée par l'utilisateur ${doc.user}`);
+  const User = mongoose.model("User");
+  await User.findByIdAndUpdate(doc.user, { $push: { reclamations: doc._id } });
+  console.log(`Nouvelle réclamation ajoutée pour l'utilisateur ${doc.user}`);
   next();
 });
 

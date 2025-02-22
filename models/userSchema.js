@@ -31,9 +31,12 @@ const userSchema = new mongoose.Schema(
     user_image: { type: String, default: "" },
     age: { type: Number },
     count: { type: Number, default: 0 },
-    contrats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contrat' }], // Ajout de la référence aux contrats
+    produits: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Produit' }],
+    reclamations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reclamation' }],
+    contrats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ClientContrat' }]
+    
   },
-  { timestamps: true, versionKey: false } // Désactiver __v
+  { timestamps: true }
 );
 
 // Hashage du mot de passe avant sauvegarde
@@ -53,9 +56,9 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-// ✅ Log après la sauvegarde
+// Mise à jour automatique des réclamations dans l'utilisateur
 userSchema.post("save", async function (doc, next) {
-  console.log("✅ Nouvel utilisateur créé :", doc.username);
+  console.log("Nouvel utilisateur créé :", doc.username);
   next();
 });
 

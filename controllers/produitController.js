@@ -8,6 +8,12 @@ const generateUniqueId = async () => {
 module.exports.addProduit = async (req, res) => {
   try {
     const { nom, description, tarif, typeProduit, duree, garanties, conditionsGenerales } = req.body;
+
+    // Validation des champs obligatoires
+    if (!nom || !description || !tarif || !typeProduit || !duree || !conditionsGenerales) {
+      return res.status(400).json({ message: "Tous les champs sont requis" });
+    }
+
     const id = await generateUniqueId();
 
     const newProduit = new Produit({
@@ -22,7 +28,7 @@ module.exports.addProduit = async (req, res) => {
     });
 
     await newProduit.save();
-    res.status(201).json({ message: "Contrat d'assurance ajouté avec succès", produit: newProduit });
+    res.status(201).json({ message: "Produit ajouté avec succès", produit: newProduit });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

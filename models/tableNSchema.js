@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
     email: String,
     password: String,
     role: String,
-    contrats: [{ type: mongoose.Schema.Types.ObjectId, ref: "Contrat" }] // Un utilisateur peut avoir plusieurs contrats
+    produits: [{ type: mongoose.Schema.Types.ObjectId, ref: "Produit" }] // Un utilisateur peut avoir plusieurs produits
   },
   { timestamps: true }
 );

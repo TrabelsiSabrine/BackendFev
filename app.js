@@ -6,16 +6,28 @@ var logger = require("morgan");
 
 const { connectToMongoDb } = require("./config/db");
 
+// gemini
+const fetch = require('node-fetch');
+global.fetch = fetch;
+global.Headers = fetch.Headers;
+global.Request = fetch.Request;
+global.Response = fetch.Response;
+ 
+
+
 require("dotenv").config();
 
 const http = require("http"); // Importation du module HTTP
 
 // Importation des routeurs
 var indexRouter = require("./routes/indexRouter");
-var usersRouter = require("./routes/usersRouter");
 var osRouter = require("./routes/osRouter");
 var reclamationRouter = require("./routes/reclamationRouter");
 var produitRouter = require("./routes/produitRouter");
+var adminRouter = require("./routes/adminRouter");
+var clientRouter = require("./routes/clientRouter");
+var clientContratRouter = require("./routes/clientContratRouter");
+var GeminiRouter = require('./routes/GeminiRouter');  // Adjust path as needed
 
 var app = express();
 
@@ -28,10 +40,14 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Utilisation des routeurs existants
 app.use("/", indexRouter);
-app.use("/users", usersRouter);
 app.use("/os", osRouter);
 app.use("/reclamations", reclamationRouter);
 app.use("/produits", produitRouter);
+app.use("/admins", adminRouter);
+app.use("/clients", clientRouter);
+app.use("/client-contrats", clientContratRouter);
+app.use("/Gemini", GeminiRouter);
+
 
 // Gestion des erreurs 404
 app.use(function (req, res, next) {
@@ -55,4 +71,3 @@ server.listen(PORT, () => {
   connectToMongoDb();
   console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
 });
-
