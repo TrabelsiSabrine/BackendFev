@@ -33,8 +33,10 @@ const userSchema = new mongoose.Schema(
     count: { type: Number, default: 0 },
     produits: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Produit' }],
     reclamations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reclamation' }],
-    contrats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ClientContrat' }]
-    
+    contrats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ClientContrat' }],
+    etat: Boolean,
+    ban: Boolean,
+  
   },
   { timestamps: true }
 );
@@ -61,6 +63,29 @@ userSchema.post("save", async function (doc, next) {
   console.log("Nouvel utilisateur créé :", doc.username);
   next();
 });
-
+userSchema.statics.login = async function (email, password) {
+  //console.log(email, password);
+  const user = await this.findOne({ email });
+  //console.log(user)
+  if (user) {
+    const auth = await bcrypt.compare(password,user.password);
+    //console.log(auth)
+    if (auth) {
+      // if (user.etat === true) {
+      //   if (user.ban === false) {
+          return user;
+      //   } else {
+      //     throw new Error("ban");
+      //   }
+      // } else {
+      //   throw new Error("compte desactive ");
+      // }
+    } else {
+      throw new Error("password invalid"); 
+    }
+  } else {
+    throw new Error("email not found");
+  }
+};
 const User = mongoose.model("User", userSchema);
 module.exports = User;

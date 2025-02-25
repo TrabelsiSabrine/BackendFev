@@ -1,30 +1,27 @@
 const ClientContrat = require('../models/clientContratSchema');
 const User = require('../models/userSchema');
 const Produit = require('../models/produitSchema');
+const clientContratSchema = require('../models/clientContratSchema');
 
-const handleError = (res, error) => {
-    console.error(error);
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-};
 
 module.exports.addClientContrat = async (req, res) => {
     try {
         const { clientId, contratId, numeroDeContrat, prix, modePaiement, dateDebut, dateFin, dateSignature, statut } = req.body;
 
-        // Vérifier si le client existe
-        const client = await User.findById(clientId);
-        if (!client) {
-            return res.status(404).json({ message: "Client non trouvé" });
-        }
+        // // Vérifier si le client existe
+        // const client = await User.findById(clientId);
+        // if (!client) {
+        //     return res.status(404).json({ message: "Client non trouvé" });
+        // }
 
-        // Vérifier si le produit (contrat) existe
-        const produit = await Produit.findById(contratId);
-        if (!produit) {
-            return res.status(404).json({ message: "Contrat (Produit) non trouvé" });
-        }
+        // // Vérifier si le produit (contrat) existe
+        // const produit = await Produit.findById(contratId);
+        // if (!produit) {
+        //     return res.status(404).json({ message: "Contrat (Produit) non trouvé" });
+        // }
 
         // Créer l'association client - contrat
-        const newClientContrat = new ClientContrat({
+        const newClientContrat = await clientContratSchema.create({
             client: clientId,
             contrat: contratId,
             numeroDeContrat,
@@ -39,15 +36,18 @@ module.exports.addClientContrat = async (req, res) => {
         await newClientContrat.save();
 
         // Ajouter l'ID du contrat dans les références du client et du produit
-        client.contrats.push(newClientContrat._id);
-        produit.contrats.push(newClientContrat._id);
+        // await userModel.findByIdAndUpdate(clientId,{
+        //     $push:{ contrats: contratId}
+        // })
+        //client.contrats.push(newClientContrat._id);
+        //produit.contrats.push(newClientContrat._id);
 
-        await client.save();
-        await produit.save();
+        // await client.save();
+        // await produit.save();
 
-        res.status(201).json({ message: "Contrat créé avec succès", clientContrat: newClientContrat });
+        res.status(201).json({  newClientContrat });
     } catch (error) {
-        handleError(res, error);
+        res.status(500).json({message: error.message});
     }
 };
 

@@ -1,4 +1,13 @@
 const userModel = require('../models/userSchema');
+const jwt = require('jsonwebtoken');
+
+const maxTime = 24 *60 * 60 //24H
+//const maxTime = 1 * 60 //1min
+const createToken = (id) => {
+    return jwt.sign({id},'net secret pfe', {expiresIn: maxTime })
+}
+//67a73ce6ce362ba943c4c9d3 + net secret pfe + 1m
+//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3Yjc0MjE5ZTFhMTM2OWRlZmZkNzJiMCIsImlhdCI6MTc0MDA2MzI2MCwiZXhwIjoxNzQwNjY4MDYwfQ.38r9wuoAG-Toz_e5yPf1uBdv8bAxgWqU58FaZHUBYeA
 
 module.exports.addClient = async (req, res) => {
     try {
@@ -152,5 +161,26 @@ module.exports.getAllClientsBetweenAges = async (req, res) => {
         res.status(200).json({ clientList });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+module.exports.login= async (req,res) => {
+    try {
+        const { email , password } = req.body;
+        const user = await userModel.login(email, password)
+        const token = createToken(user._id)
+        res.cookie("jwt_token_sabrine", token, {httpOnly:false,maxAge:maxTime * 1000})
+        res.status(200).json({user})
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
+};
+
+module.exports.logout= async (req,res) => {
+    try {
+  
+        res.cookie("jwt_token_sabrine", "", {httpOnly:false,maxAge:1})
+        res.status(200).json("logged")
+    } catch (error) {
+        res.status(500).json({message: error.message});
     }
 };
