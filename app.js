@@ -3,24 +3,16 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-
 const { connectToMongoDb } = require("./config/db");
 const cors = require("cors");
 const session = require("express-session"); //session
+const http = require("http");
 
 // gemini
-const fetch = require('node-fetch');
-global.fetch = fetch;
-global.Headers = fetch.Headers;
-global.Request = fetch.Request;
-global.Response = fetch.Response;
- 
+
 const logMiddleware = require('./middlewares/logsMiddlewares.js'); //log
-
-
 require("dotenv").config();
 
-const http = require("http"); // Importation du module HTTP
 
 // Importation des routeurs
 var indexRouter = require("./routes/indexRouter");
@@ -58,7 +50,13 @@ app.use(session({   //cobfig session
   
   },  
 }))
-
+// gemini
+const fetch = require('node-fetch');
+global.fetch = fetch;
+global.Headers = fetch.Headers;
+global.Request = fetch.Request;
+global.Response = fetch.Response;
+ 
 // Utilisation des routeurs existants
 app.use("/", indexRouter);
 app.use("/os", osRouter);

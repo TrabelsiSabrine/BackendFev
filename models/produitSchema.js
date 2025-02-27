@@ -35,10 +35,7 @@ const produitSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-    conditionsGenerales: {
-      type: String,
-      required: [true, "Les conditions générales sont obligatoires"],
-    },
+    
     statut: {
       type: String,
       enum: ["actif", "expiré", "annulé"],
