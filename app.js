@@ -23,6 +23,7 @@ var adminRouter = require("./routes/adminRouter");
 var clientRouter = require("./routes/clientRouter");
 var clientContratRouter = require("./routes/clientContratRouter");
 var GeminiRouter = require('./routes/GeminiRouter');  // Adjust path as needed
+var adherentRouter = require("./routes/adherentRouter");
 
 var app = express();
 
@@ -66,7 +67,7 @@ app.use("/admins", adminRouter);
 app.use("/clients", clientRouter);
 app.use("/client-contrats", clientContratRouter);
 app.use("/Gemini", GeminiRouter);
-
+app.use("/adherents", adherentRouter);
 
 // Gestion des erreurs 404
 app.use(function (req, res, next) {
