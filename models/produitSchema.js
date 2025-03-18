@@ -7,42 +7,21 @@ const produitSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
-    nom: {
+    codeProduit: {
       type: String,
-      required: [true, "Le nom du produit est obligatoire"],
+      required: true,
+      unique: true,
+    },
+    libelleProduit: {
+      type: String,
+      required: true,
       trim: true,
     },
-    description: {
-      type: String,
-      trim: true,
+    prix: {
+      type: Number, // `double` n'existe pas en Mongoose, `Number` couvre les décimaux
+      required: true,
+      min: 0,
     },
-    tarif: {
-      type: Number,
-      required: [true, "Le tarif est obligatoire"],
-      min: [0, "Le tarif ne peut pas être négatif"],
-    },
-    typeProduit: {
-      type: String,
-      enum: ["Assurance Habitation", "Assurance Voyage", "Assurance Auto", "Assurance Santé"],
-      required: [true, "Le type du produit est obligatoire"],
-    },
-    duree: {
-      type: String,
-      required: [true, "La durée est obligatoire"],
-      min: [1, "La durée doit être d'au moins 1 mois"],
-    },
-    garanties: {
-      type: [String],
-      default: [],
-    },
-    
-    statut: {
-      type: String,
-      enum: ["actif", "expiré", "annulé"],
-      default: "actif",
-    },
-    contrats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ClientContrat' }] // Liens avec les contrats associés
-
   },
   { timestamps: true, versionKey: false }
 );

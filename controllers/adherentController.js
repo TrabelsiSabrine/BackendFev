@@ -108,20 +108,23 @@ module.exports.deleteAdherentById = async (req, res) => {
   }
 };
 
-// Recherche d'un adhérent par nom
-module.exports.searchAdherentByUsername = async (req, res) => {
+// Recherche d'un adhérent par nom ou prénom
+module.exports.searchAdherentByNomPrenom = async (req, res) => {
   try {
-    const { username } = req.query;
-    if (!username) {
-      throw new Error("Veuillez fournir un nom pour la recherche.");
+    const { nomPrenom } = req.query;
+    if (!nomPrenom) {
+      throw new Error("Veuillez fournir un nom ou prénom pour la recherche.");
     }
 
     const adherentList = await Adherent.find({
-      username: { $regex: username, $options: "i" },
+      $or: [
+        { username: { $regex: nomPrenom, $options: "i" } },
+        // Si vous avez un champ 'prenom', vous pouvez aussi ajouter cette condition
+      ],
     });
 
     if (!adherentList.length) {
-      return res.status(404).json({ message: "Adhérent non trouvé" });
+      return res.status(404).json({ message: "Aucun adhérent trouvé" });
     }
 
     const count = adherentList.length;
@@ -142,7 +145,7 @@ module.exports.getAllAdherentsSortByAge = async (req, res) => {
 };
 
 // Récupérer les adhérents d'un âge spécifique
-module.exports.getAllAdherentsByAge = async (req, res) => {
+module.exports.getAdherentsByAge = async (req, res) => {
   try {
     const { age } = req.params;
     const adherentList = await Adherent.find({ age });
@@ -154,7 +157,7 @@ module.exports.getAllAdherentsByAge = async (req, res) => {
 };
 
 // Récupérer les adhérents entre un âge min et max
-module.exports.getAllAdherentsBetweenAges = async (req, res) => {
+module.exports.getAdherentsBetweenAges = async (req, res) => {
   try {
     const { MaxAge, MinAge } = req.query;
     if (!MaxAge || !MinAge) {

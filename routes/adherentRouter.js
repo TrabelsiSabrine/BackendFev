@@ -17,18 +17,18 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Routes pour les adhérents
-router.post("/add", adherentController.addAdherent); // Ajouter un adhérent sans image
-router.post("/add-with-image", upload.single("user_image"), adherentController.addAdherentWithImg); // Ajouter un adhérent avec image
+router.post("/addAdherent", adherentController.addAdherent); // Ajouter un adhérent sans image
+router.post("/addAdherentWithImg", upload.single("user_image"), adherentController.addAdherentWithImg); // Ajouter un adhérent avec image
 
 router.get("/all", adherentController.getAllAdherents); // Récupérer tous les adhérents
 router.get("/:id", adherentController.getAdherentById); // Récupérer un adhérent par ID
 
 router.put("/:id", adherentController.updateAdherent); // Mettre à jour un adhérent
-router.delete("/:id", adherentController.deleteAdherentById); // Supprimer un adhérent
+router.delete("/deleteAdherentById/:id", adherentController.deleteAdherentById); // Supprimer un adhérent
 
-router.get("/search", adherentController.searchAdherentByNomPrenom); // Recherche d'adhérents par nom ou prénom
-router.get("/age-sort", adherentController.getAllAdherentsSortByAge); // Récupérer les adhérents triés par âge
-router.get("/age/:age", adherentController.getAdherentsByAge); // Récupérer les adhérents d'un âge spécifique
-router.get("/age-range", adherentController.getAdherentsBetweenAges); // Récupérer les adhérents entre un âge min et max
+router.get("/searchAdherentByNomPrenom", adherentController.searchAdherentByNomPrenom); // Recherche d'adhérents par nom ou prénom
+router.get("/getAllAdherentsSortByAge", adherentController.getAllAdherentsSortByAge); // Récupérer les adhérents triés par âge
+router.get("/getAdherentsByAge/:age", adherentController.getAdherentsByAge); // Récupérer les adhérents d'un âge spécifique
+router.get("/getAdherentsBetweenAges", adherentController.getAdherentsBetweenAges); // Récupérer les adhérents entre un âge min et max
 
 module.exports = router;

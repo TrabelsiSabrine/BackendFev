@@ -7,30 +7,31 @@ const reclamationSchema = new mongoose.Schema(
       required: [true, "La description est obligatoire"],
       trim: true,
     },
-    status: {
+    statut: {
       type: String,
       enum: ["En attente", "En cours", "Résolue", "Rejetée"],
       default: "En attente",
     },
-    date: {
+    dateSoumission: {
       type: Date,
       default: Date.now,
     },
-    user: {
+    dateTraitement: {
+      type: Date,
+    },
+    reponseAdmin: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    adherent: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: [true, "L'utilisateur associé est obligatoire"],
+      ref: "Adherent",
+      required: [true, "L'adhérent associé est obligatoire"],
     },
   },
   { timestamps: true, versionKey: false }
 );
-
-reclamationSchema.post("save", async function (doc, next) {
-  const User = mongoose.model("User");
-  await User.findByIdAndUpdate(doc.user, { $push: { reclamations: doc._id } });
-  console.log(`Nouvelle réclamation ajoutée pour l'utilisateur ${doc.user}`);
-  next();
-});
 
 const Reclamation = mongoose.model("Reclamation", reclamationSchema);
 module.exports = Reclamation;

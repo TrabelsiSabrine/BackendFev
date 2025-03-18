@@ -1,28 +1,27 @@
-const userModel = require("../models/userSchema");
-const reclamationModel = require("../models/reclamationSchema");
+const Reclamation = require("../models/reclamationSchema");
+const Adherent = require("../models/adherentSchema");
 
+// Ajouter une réclamation
 module.exports.addReclamation = async (req, res) => {
   try {
-    const { description, status, date, userId } = req.body;
+    const { description, adherentId } = req.body;
 
-    // Vérifier si l'utilisateur existe
-    const user = await userModel.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    // Vérifier si l'adhérent existe
+    const adherent = await Adherent.findById(adherentId);
+    if (!adherent) {
+      return res.status(404).json({ message: "Adhérent non trouvé" });
     }
 
     // Créer la réclamation
-    const newReclamation = new reclamationModel({
+    const newReclamation = new Reclamation({
       description,
-      status: status || "En attente",
-      date: date || new Date(),
-      user: userId,
+      adherent: adherentId,
     });
 
     await newReclamation.save();
 
-    // Ajouter la réclamation à l'utilisateur
-    await userModel.findByIdAndUpdate(userId, {
+    // Ajouter la réclamation à l'adhérent
+    await Adherent.findByIdAndUpdate(adherentId, {
       $push: { reclamations: newReclamation._id },
     });
 
@@ -35,19 +34,27 @@ module.exports.addReclamation = async (req, res) => {
   }
 };
 
+// Récupérer toutes les réclamations
 module.exports.getAllReclamations = async (req, res) => {
   try {
-    const reclamations = await reclamationModel.find().populate("user"); 
+    const reclamations = await Reclamation.find().populate("adherent");
     return res.status(200).json({ reclamations });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
 
+// Récupérer une réclamation par ID
 module.exports.getReclamationById = async (req, res) => {
   try {
     const { id } = req.params;
-    const reclamation = await reclamationModel.findById(id).populate("user");
+
+    // Vérifier si l'ID est valide
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "ID de réclamation invalide" });
+    }
+
+    const reclamation = await Reclamation.findById(id).populate("adherent");
 
     if (!reclamation) {
       return res.status(404).json({ message: "Réclamation non trouvée" });
@@ -59,14 +66,30 @@ module.exports.getReclamationById = async (req, res) => {
   }
 };
 
+// Mettre à jour une réclamation
 module.exports.updateReclamationById = async (req, res) => {
   try {
     const { id } = req.params;
-    const { description, status, date } = req.body;
+    const { statut, reponseAdmin } = req.body;
 
-    const updatedReclamation = await reclamationModel.findByIdAndUpdate(
+    // Validation des valeurs de statut
+    const validStatuts = ["En cours", "Résolue", "Rejetée"];
+    if (statut && !validStatuts.includes(statut)) {
+      return res.status(400).json({ message: "Statut invalide" });
+    }
+
+    // Vérification de l'ID
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "ID de réclamation invalide" });
+    }
+
+    const updatedReclamation = await Reclamation.findByIdAndUpdate(
       id,
-      { description, status, date },
+      {
+        statut,
+        reponseAdmin,
+        dateTraitement: statut === "Résolue" || statut === "Rejetée" ? new Date() : undefined,
+      },
       { new: true }
     );
 
@@ -75,118 +98,102 @@ module.exports.updateReclamationById = async (req, res) => {
     }
 
     return res.status(200).json({
-      message: "Réclamation mise à jour",
+      message: "Réclamation mise à jour avec succès",
       reclamation: updatedReclamation,
     });
-  } catch (error) {
-    console.error("Erreur lors de la mise à jour :", error);
-    return res.status(500).json({ message: "Erreur serveur" });
-  }
-};
-
-module.exports.getReclamationsByUser = async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    const user = await userModel.findById(userId).populate("reclamations");
-    if (!user) {
-      return res.status(404).json({ message: "Utilisateur non trouvé" });
-    }
-
-    return res.status(200).json({ reclamations: user.reclamations });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
 
+// Supprimer une réclamation
 module.exports.deleteReclamationById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const reclamation = await reclamationModel.findById(id);
+    // Vérifier l'ID de la réclamation
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "ID de réclamation invalide" });
+    }
+
+    const reclamation = await Reclamation.findById(id);
     if (!reclamation) {
       return res.status(404).json({ message: "Réclamation non trouvée" });
     }
 
-    // Vérifier si l'utilisateur a bien créé cette réclamation (facultatif si pas nécessaire)
-    if (req.body.userId && reclamation.user.toString() !== req.body.userId) {
-      return res.status(403).json({ message: "Vous n'avez pas le droit de supprimer cette réclamation" });
-    }
+    await Reclamation.findByIdAndDelete(id);
 
-    // Supprimer la réclamation
-    await reclamationModel.findByIdAndDelete(id);
-
-    // Retirer la réclamation du tableau des réclamations de l'utilisateur
-    await userModel.findByIdAndUpdate(reclamation.user, {
+    // Supprimer la réclamation de la liste de l'adhérent
+    await Adherent.findByIdAndUpdate(reclamation.adherent, {
       $pull: { reclamations: id },
     });
 
-    return res.status(200).json({
-      message: "Réclamation supprimée avec succès",
-      deletedReclamation: reclamation,
-    });
+    return res.status(200).json({ message: "Réclamation supprimée avec succès" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
 
-// Affecter une réclamation à un utilisateur
+// Récupérer les réclamations d'un adhérent
+module.exports.getReclamationsByAdherent = async (req, res) => {
+  try {
+    const { adherentId } = req.params;
+
+    // Vérifier l'ID de l'adhérent
+    if (!adherentId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "ID de l'adhérent invalide" });
+    }
+
+    const adherent = await Adherent.findById(adherentId).populate("reclamations");
+    if (!adherent) {
+      return res.status(404).json({ message: "Adhérent non trouvé" });
+    }
+
+    return res.status(200).json({ reclamations: adherent.reclamations });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// Affecter une réclamation (exemple)
 module.exports.affectReclamation = async (req, res) => {
   try {
-    const { userId, reclamationId } = req.body;
+    const { id, agentId } = req.body; // exemple de données envoyées
+    const reclamation = await Reclamation.findById(id);
 
-    const reclamation = await reclamationModel.findById(reclamationId);
     if (!reclamation) {
-      return res.status(404).json({ message: "Réclamation introuvable" });
+      return res.status(404).json({ message: "Réclamation non trouvée" });
     }
 
-    const user = await userModel.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "Utilisateur introuvable" });
-    }
+    reclamation.agent = agentId; // affecter l'agent à la réclamation
+    await reclamation.save();
 
-    // Mettre à jour la réclamation avec le nouvel utilisateur
-    await reclamationModel.findByIdAndUpdate(reclamationId, {
-      $set: { user: userId },
+    return res.status(200).json({
+      message: "Réclamation affectée avec succès",
+      reclamation,
     });
-
-    // Ajouter la réclamation à l'utilisateur
-    await userModel.findByIdAndUpdate(userId, {
-      $push: { reclamations: reclamationId },
-    });
-
-    return res.status(200).json({ message: "Réclamation affectée avec succès" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
 
-// Désaffecter une réclamation d'un utilisateur
+// Désaffecter une réclamation (exemple)
 module.exports.desaffectReclamation = async (req, res) => {
   try {
-    const { userId, reclamationId } = req.body;
+    const { id } = req.body;
+    const reclamation = await Reclamation.findById(id);
 
-    const reclamation = await reclamationModel.findById(reclamationId);
     if (!reclamation) {
-      return res.status(404).json({ message: "Réclamation introuvable" });
+      return res.status(404).json({ message: "Réclamation non trouvée" });
     }
 
-    const user = await userModel.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "Utilisateur introuvable" });
-    }
+    reclamation.agent = null; // désaffecter l'agent de la réclamation
+    await reclamation.save();
 
-    // Supprimer l'association entre la réclamation et l'utilisateur
-    await reclamationModel.findByIdAndUpdate(reclamationId, {
-      $unset: { user: 1 }, // Supprime l'utilisateur assigné
+    return res.status(200).json({
+      message: "Réclamation désaffectée avec succès",
+      reclamation,
     });
-
-    // Retirer la réclamation du tableau de l'utilisateur
-    await userModel.findByIdAndUpdate(userId, {
-      $pull: { reclamations: reclamationId },
-    });
-
-    return res.status(200).json({ message: "Réclamation désaffectée avec succès" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
