@@ -177,15 +177,29 @@ module.exports.getAdherentsBetweenAges = async (req, res) => {
 // Authentification et connexion d'un adhérent
 module.exports.login = async (req, res) => {
   try {
-    const { email, mot_de_passe } = req.body;
-    const adherent = await Adherent.login(email, mot_de_passe); // Utilise la méthode de login dans le modèle
+    const { numeroAdherent, mot_de_passe } = req.body;
+
+    // Vérifier si l'adhérent existe avec ce numéro
+    const adherent = await Adherent.findOne({ numeroAdherent });
+    if (!adherent) {
+      return res.status(400).json({ message: "Numéro d'adhérent incorrect" });
+    }
+
+    // Vérifier le mot de passe
+    if (adherent.mot_de_passe !== mot_de_passe) {
+      return res.status(400).json({ message: "Mot de passe incorrect" });
+    }
+
+    // Générer un token JWT
     const token = createToken(adherent._id);
     res.cookie("jwt_token_adherent", token, { httpOnly: false, maxAge: maxTime * 1000 });
-    res.status(200).json({ adherent });
+
+    res.status(200).json({ message: "Connexion réussie", adherent, token });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Déconnexion d'un adhérent
 module.exports.logout = async (req, res) => {

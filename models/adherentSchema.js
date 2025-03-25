@@ -3,11 +3,7 @@ const bcrypt = require("bcrypt");
 
 const adherentSchema = new mongoose.Schema(
   {
-    username: {
-      type: String,
-      required: true,
-      unique: true,
-    },
+    id: { type: Number, required: true, unique: true },
     email: {
       type: String,
       required: true,
@@ -24,18 +20,16 @@ const adherentSchema = new mongoose.Schema(
         "Le mot de passe doit contenir au moins 8 caractères, une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial.",
       ],
     },
-    role: {
-      type: String,
-      enum: ["admin", "client", "infi"],
-    },
     user_image: { type: String, default: "" },
-    age: { type: Number },
-    count: { type: Number, default: 0 },
-    produits: [{ type: mongoose.Schema.Types.ObjectId, ref: "Produit" }],
-    reclamations: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reclamation" }],
-    contrats: [{ type: mongoose.Schema.Types.ObjectId, ref: "ClientContrat" }],
-    etat: { type: Boolean, default: true },
-    ban: { type: Boolean, default: false },
+    numeroAdherent: { type: String, required: true, unique: true },
+    nom: { type: String, required: true },
+    prenom: { type: String, required: true },
+    age: { type: Number, required: true },
+    telephone: { type: String, required: true },
+    adresse: { type: String, required: true },
+    ville: { type: String, required: true },
+    codePostal: { type: String, required: true },
+    dateInscription: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
@@ -47,42 +41,24 @@ adherentSchema.pre("save", async function (next) {
       const salt = await bcrypt.genSalt();
       this.mot_de_passe = await bcrypt.hash(this.mot_de_passe, salt);
     }
-
-    // Vérification et incrémentation de count
-    this.count = (this.count ?? 0) + 1;
-
     next();
   } catch (error) {
     next(error);
   }
 });
 
-// Mise à jour automatique des réclamations dans l'adhérent
-adherentSchema.post("save", async function (doc, next) {
-  console.log("Nouvel adhérent créé :", doc.username);
-  next();
-});
-
-// Méthode de login
-adherentSchema.statics.login = async function (email, mot_de_passe) {
-  const adherent = await this.findOne({ email });
+// Méthode de login avec numeroAdherent
+adherentSchema.statics.login = async function (numeroAdherent, mot_de_passe) {
+  const adherent = await this.findOne({ numeroAdherent });
   if (adherent) {
     const auth = await bcrypt.compare(mot_de_passe, adherent.mot_de_passe);
     if (auth) {
-      if (adherent.etat === true) {
-        if (adherent.ban === false) {
-          return adherent;
-        } else {
-          throw new Error("Votre compte est banni");
-        }
-      } else {
-        throw new Error("Compte désactivé");
-      }
+      return adherent;
     } else {
       throw new Error("Mot de passe incorrect");
     }
   } else {
-    throw new Error("E-mail non trouvé");
+    throw new Error("Numéro d'adhérent non trouvé");
   }
 };
 
